@@ -16,6 +16,7 @@ export interface TrixEditorProps {
     uploadData?: {
         [key: string]: string;
     };
+    className?: string;
     mergeTags: Array<MergeTags>;
     onEditorReady?: (editor: any) => void;
     onChange: (html: string, text: string) => void;
