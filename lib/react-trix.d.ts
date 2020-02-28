@@ -1,12 +1,4 @@
 import * as React from "react";
-export interface MergeTag {
-    tag: string;
-    name: string;
-}
-export interface MergeTags {
-    trigger: string;
-    tags: Array<MergeTag>;
-}
 export interface TrixEditorProps {
     autoFocus?: boolean;
     placeholder?: string;
@@ -17,13 +9,10 @@ export interface TrixEditorProps {
         [key: string]: string;
     };
     className?: string;
-    mergeTags: Array<MergeTags>;
     onEditorReady?: (editor: any) => void;
     onChange: (html: string, text: string) => void;
 }
 export interface TrixEditorState {
-    showMergeTags: boolean;
-    tags: Array<MergeTag>;
 }
 export interface Editor {
     getSelectedRange: () => Array<number>;
@@ -52,7 +41,5 @@ export declare class TrixEditor extends React.Component<TrixEditorProps, TrixEdi
     private handleChange;
     private handleUpload;
     private uploadAttachment;
-    private handleTagSelected;
-    private renderTagSelector;
     render(): JSX.Element;
 }
