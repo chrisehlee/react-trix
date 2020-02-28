@@ -1,16 +1,6 @@
 import * as React from "react";
 import { BoxSizingProperty } from "csstype";
 
-export interface MergeTag {
-  tag: string;
-  name: string;
-}
-
-export interface MergeTags {
-  trigger: string;
-  tags: Array<MergeTag>;
-}
-
 export interface TrixEditorProps {
   autoFocus?: boolean;
   placeholder?: string;
@@ -19,17 +9,12 @@ export interface TrixEditorProps {
   uploadURL?: string;
   uploadData?: { [key: string]: string };
   className?: string;
-  /* list of available merge tag */
-  mergeTags: Array<MergeTags>;
 
   onEditorReady?: (editor: any) => void;
   onChange: (html: string, text: string) => void;
 }
 
-export interface TrixEditorState {
-  showMergeTags: boolean;
-  tags: Array<MergeTag>;
-}
+export interface TrixEditorState {}
 
 export interface Editor {
   getSelectedRange: () => Array<number>;
@@ -61,10 +46,7 @@ export class TrixEditor extends React.Component<
 
     this.id = this.generateId();
 
-    this.state = {
-      showMergeTags: false,
-      tags: []
-    };
+    this.state = {};
   }
   private generateId(): string {
     let timestamp = Date.now();
@@ -128,35 +110,12 @@ export class TrixEditor extends React.Component<
       );
     }
   }
-  private handleChange(e) {
+  private handleChange(e: any) {
     const props = this.props;
-    let state: TrixEditorState = this.state;
     const text: string = e.target.innerText;
 
     if (props.onChange) {
       props.onChange(e.target.innerHTML, text);
-    }
-
-    const range = this.editor.getSelectedRange();
-
-    // if we have a collapse selection
-    if (text && range[0] == range[1]) {
-      // if we have a merge tag mergeTagTrigger
-      if (props.mergeTags) {
-        // get the cursor position and compare the last character with our mergeTagTrigger
-        const lastChar = range[0] - 1;
-        if (lastChar >= 0 && lastChar < text.length) {
-          const trigger = text[lastChar];
-          for (let i = 0; i < props.mergeTags.length; i++) {
-            if (trigger == props.mergeTags[i].trigger) {
-              state.showMergeTags = true;
-              state.tags = props.mergeTags[i].tags;
-              this.setState(state);
-              break;
-            }
-          }
-        }
-      }
     }
   }
   private handleUpload(e: any) {
@@ -195,71 +154,7 @@ export class TrixEditor extends React.Component<
     };
     return xhr.send(form);
   }
-  private handleTagSelected(
-    t: MergeTag,
-    e: React.MouseEvent<HTMLAnchorElement>
-  ): void {
-    e.preventDefault();
-
-    let state: TrixEditorState = this.state;
-    state.showMergeTags = false;
-    this.setState(state);
-
-    this.editor.expandSelectionInDirection("backward");
-    this.editor.insertString(t.tag);
-  }
-  private renderTagSelector(tags: Array<MergeTag>): React.ReactNode {
-    if (!tags) {
-      return null;
-    }
-
-    const editorPosition = document
-      .getElementById("trix-editor-top-level")
-      .getBoundingClientRect();
-
-    // current cursor position
-    const rect = this.editor.getClientRectAtPosition(
-      this.editor.getSelectedRange()[0]
-    );
-    const boxStyle = {
-      position: "absolute" as "absolute",
-      top: rect.top + 25 - editorPosition.top,
-      left: rect.left + 25 - editorPosition.left,
-      width: "250px",
-      boxSizing: "border-box" as BoxSizingProperty,
-      padding: 0,
-      margin: ".2em 0 0",
-      backgroundColor: "hsla(0,0%,100%,.9)",
-      borderRadius: ".3em",
-      background: "linear-gradient(to bottom right, white, hsla(0,0%,100%,.8))",
-      border: "1px solid rgba(0,0,0,.3)",
-      boxShadow: ".05em .2em .6em rgba(0,0,0,.2)",
-      textShadow: "none"
-    };
-    const tagStyle = {
-      display: "block",
-      padding: ".2em .5em",
-      cursor: "pointer"
-    };
-    return (
-      <div style={boxStyle} className="react-trix-suggestions">
-        {tags.map(t => {
-          return (
-            <a
-              key={t.name}
-              style={tagStyle}
-              href="#"
-              onClick={this.handleTagSelected.bind(this, t)}
-            >
-              {t.name}
-            </a>
-          );
-        })}
-      </div>
-    );
-  }
   render() {
-    let state: TrixEditorState = this.state;
     let props = this.props;
 
     var attributes: { [key: string]: string } = {
@@ -279,11 +174,6 @@ export class TrixEditor extends React.Component<
     if (props.toolbar) {
       attributes["toolbar"] = props.toolbar;
     }
-
-    let mergetags: React.ReactNode = null;
-    if (state.showMergeTags) {
-      mergetags = this.renderTagSelector(state.tags);
-    }
     return (
       <div
         id="trix-editor-top-level"
@@ -292,7 +182,6 @@ export class TrixEditor extends React.Component<
       >
         {React.createElement("trix-editor", attributes)}
         <input type="hidden" id={`input-${this.id}`} value={this.props.value} />
-        {mergetags}
       </div>
     );
   }
