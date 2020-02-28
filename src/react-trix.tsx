@@ -1,5 +1,4 @@
 import * as React from "react";
-import { BoxSizingProperty } from "csstype";
 
 export interface TrixEditorProps {
   autoFocus?: boolean;
