@@ -9,6 +9,7 @@ export interface TrixEditorProps {
         [key: string]: string;
     };
     className?: string;
+    fileParamName?: string;
     onEditorReady?: (editor: any) => void;
     onChange: (html: string, text: string) => void;
 }

@@ -8,6 +8,7 @@ export interface TrixEditorProps {
   uploadURL?: string;
   uploadData?: { [key: string]: string };
   className?: string;
+  fileParamName?: string;
 
   onEditorReady?: (editor: any) => void;
   onChange: (html: string, text: string) => void;
@@ -38,8 +39,8 @@ export class TrixEditor extends React.Component<
 > {
   private id: string;
   private container: any = null;
-  private editor: Editor = null;
-  private d: HTMLDivElement = null;
+  private editor: Editor | null = null;
+  private d: HTMLDivElement | null = null;
   constructor(props: TrixEditorProps) {
     super(props);
 
@@ -48,18 +49,16 @@ export class TrixEditor extends React.Component<
     this.state = {};
   }
   private generateId(): string {
-    let timestamp = Date.now();
-    let uniqueNumber = 0;
-
-    (() => {
-      // If created at same millisecond as previous
-      if (timestamp <= uniqueNumber) {
-        timestamp = ++uniqueNumber;
-      } else {
-        uniqueNumber = timestamp;
-      }
-    })();
-    return "T" + timestamp.toString();
+    let dt = new Date().getTime();
+    let uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(
+      c
+    ) {
+      let r = (dt + Math.random() * 16) % 16 | 0;
+      dt = Math.floor(dt / 16);
+      // eslint-disable-next-line no-mixed-operators
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    });
+    return "T" + uuid;
   }
   componentDidMount() {
     let props = this.props;
@@ -124,7 +123,7 @@ export class TrixEditor extends React.Component<
     }
   }
   private uploadAttachment(attachment: any) {
-    var file, form, xhr;
+    var file: any, form: any, xhr: any;
     file = attachment.file;
     form = new FormData();
     // add any custom data that were passed
@@ -134,20 +133,20 @@ export class TrixEditor extends React.Component<
       }
     }
     //form.append("Content-Type", "multipart/form-data");
-    form.append("file", file);
+    // form.append("file", file);
+    form.append(this.props.fileParamName || "file", file);
     xhr = new XMLHttpRequest();
     xhr.open("POST", this.props.uploadURL, true);
-    xhr.upload.onprogress = event => {
+    xhr.upload.onprogress = (event: any) => {
       var progress = (event.loaded / event.total) * 100;
       return attachment.setUploadProgress(progress);
     };
     xhr.onload = () => {
-      var href, url;
       if (xhr.status >= 200 && xhr.status < 300) {
-        url = href = xhr.responseText;
+        let responseData = JSON.parse(xhr.responseText);
         return attachment.setAttributes({
-          url: url,
-          href: href
+          url: responseData.secure_url,
+          href: responseData.secure_url
         });
       }
     };
@@ -158,12 +157,15 @@ export class TrixEditor extends React.Component<
 
     var attributes: { [key: string]: string } = {
       id: `editor-${this.id}`,
-      input: `input-${this.id}`,
-      class: `${props.className ? props.className : ""}`
+      input: `input-${this.id}`
     };
 
     if (props.autoFocus) {
       attributes["autoFocus"] = props.autoFocus.toString();
+    }
+
+    if (props.className) {
+      attributes["class"] = props.className;
     }
 
     if (props.placeholder) {
